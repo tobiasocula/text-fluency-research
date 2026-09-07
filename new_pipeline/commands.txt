@@ -1,0 +1,10 @@
+wget -O - https://data.hplt-project.org/three/sorted/hun_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/fin_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/spa_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/nld_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/eng_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/nob_Latn.map | wget -x -nH --cut-dirs=2 -i -
+wget -O - https://data.hplt-project.org/three/sorted/vie_Latn.map | wget -x -nH --cut-dirs=2 -i -
+
+INSPECT SIZE:
+wget --spider --server-response https://data.hplt-project.org/two/deduplicated/deu_Latn/10.jsonl.zst 2>&1 | grep -i "Length"
