@@ -4,7 +4,7 @@ import sys
 # UPPERS ARE MUTUALLY EXCLUSIVE
 upperleft = "bhk"
 upperright = "d"
-upperboth = "fijltäëöàáéíóúüñőűåçèï"
+upperboth = "fijltäëöàáéíóúüñőűåèï"
 caps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 normal = "acemnorsuvwxz"
@@ -12,7 +12,9 @@ normal = "acemnorsuvwxz"
 # LOWERS ARE MUTUALLY EXCLUSIVE
 lowerleft = "py"
 lowerright = "q"
-lowerboth = "gj"
+lowerboth = "gjç"
+
+double_accent = "äëöüőűï"
 
 def analyze_text(text):
 
@@ -52,6 +54,8 @@ def analyze_text(text):
             elif x in upperboth:
                 upper_distances.append(count_upper_dist)
                 count_upper_dist = 0
+                if x in double_accent:
+                    upper_distances.append(0.2) # small distance
             else:
                 count_upper_dist += 1
 

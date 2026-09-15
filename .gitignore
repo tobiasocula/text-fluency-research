@@ -3,6 +3,9 @@ amatic
 arial
 chunkfive
 fin_Latn
-new_vertical/french_texts_random_subset.jsonl
-new_vertical/german_texts_subset.jsonl
-new_vertical/hun_texts_subset.jsonl
+french_texts_random_subset.jsonl
+german_texts_subset.jsonl
+hun_texts_subset.jsonl
+venv
+amatic_debug.png
+obsidian_vault_tree.py

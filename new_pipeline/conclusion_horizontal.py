@@ -18,22 +18,26 @@ for i,(lan,data) in enumerate(fdata.items()):
             stats_an[i,:] = list(modedata.values())
         else:
             stats_gr[i,:] = list(modedata.values())
+
 import sys
+
+# size 4: std/mean over languages
 mean_an = np.mean(stats_an, axis=0)
 mean_gr = np.mean(stats_gr, axis=0)
 std_an = np.std(stats_an, axis=0)
 std_gr = np.std(stats_gr, axis=0)
-L = len(fdata)
+L = len(fdata) # num languages
 
 lan_labels = ["french", "german", "hun", "fin", "spa"]
 table = np.empty((2,4,len(lan_labels)))
 for i in range(2):
     for j in range(4):
         for l in range(len(lan_labels)):
+            # standardize over languages
             if i == 0:
-                table[i,j,l] = (stats_an[l, j] - mean_an[j]) / std_an[j]
+                table[i,j,l] = (stats_an[l,j] - mean_an[j]) / std_an[j]
             else:
-                table[i,j,l] = (stats_gr[l, j] - mean_gr[j]) / std_gr[j]
+                table[i,j,l] = (stats_gr[l,j] - mean_gr[j]) / std_gr[j]
 
 for i,label in enumerate(lan_labels):
     print(label, ':')
@@ -148,15 +152,19 @@ spa :
 
 LAST WITH MORE DATA:
 
+rows: analytical/graphical
+cols: std upper, std lower, mean upper, mean lower
+standardized wrt 
+
 french :
 [[1.64323511 1.91238671 1.43714487 1.99091252]
  [1.67276935 0.47753146 1.68140951 1.14824587]]
 german :
-[[ 0.68403513  0.0886053   0.98467401 -0.38389183]
- [ 0.62956281  1.70891006  0.61638512  1.26283263]]
+[[0.68403513  0.0886053   0.98467401 -0.38389183]
+ [0.62956281  1.70891006  0.61638512  1.26283263]]
 hun :
 [[-0.64306698 -0.67237361 -0.73376006 -0.40258539]
- [-0.61628196 -1.14340495 -0.62258608 -1.1179585 ]]
+ [-0.61628196 -1.14340495 -0.62258608 -1.1179585]]
 fin :
 [[-0.84797068 -0.65366792 -0.87449758 -0.57494867]
  [-0.88943255 -0.53275589 -0.87043836 -0.66746777]]

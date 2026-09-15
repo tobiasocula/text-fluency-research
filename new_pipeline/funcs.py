@@ -265,6 +265,61 @@ def text_to_img(text, font_path, font_size, out_path=None, padding=20, max_width
 
     return img
 
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+
+
+def text_to_img_new(
+    text,
+    font_path,
+    font_size=20,
+    margin_x=10,
+    margin_y=10,
+    background=255,
+    foreground=0,
+):
+    font = ImageFont.truetype(font_path, font_size)
+
+    # Remove existing line breaks if every sample must be one physical line.
+    text = text.replace("\n", " ").replace("\r", " ")
+
+    # Optional: collapse repeated whitespace.
+    text = " ".join(text.split())
+
+    # Get the actual rendered bounding box.
+    dummy_img = Image.new("L", (1, 1), color=background)
+    dummy_draw = ImageDraw.Draw(dummy_img)
+
+    left, top, right, bottom = dummy_draw.textbbox(
+        (0, 0),
+        text,
+        font=font,
+    )
+
+    text_width = right - left
+    text_height = bottom - top
+
+    image_width = text_width + 2 * margin_x
+    image_height = text_height + 2 * margin_y
+
+    img = Image.new(
+        "L",
+        (image_width, image_height),
+        color=background,
+    )
+
+    draw = ImageDraw.Draw(img)
+
+    # Compensate for the font's bounding-box offset.
+    draw.text(
+        (margin_x - left, margin_y - top),
+        text,
+        font=font,
+        fill=foreground,
+    )
+
+    return np.asarray(img)
+
 # def draw_hbar(img):
 #     img = img if len(img.shape) == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -692,13 +747,15 @@ def compute_scores_att_2(img, call_idx, debug=False,
             cv2.imwrite(str(output_dir / f"failed_with_image_{call_idx}.png"), img_copy)
             return
         for i in range(len(scores_top)):
+            # line-per-line "intensity"
             intensity = np.sum(np.abs(img[i+top,:] - img[i+1+top,:]))
             scores_top[i] = intensity
             intensity = np.sum(np.abs(img[bottom-i,:] - img[bottom-i-1,:]))
             scores_bottom[i] = intensity
 
-        padding_indices = 1 # to avoid having completely no margin
-        
+        #padding_indices = 1 # to avoid having completely no margin
+        padding_indices = 0
+
         best_top = np.argmax(scores_top) + top
         best_bottom = bottom - np.argmax(scores_bottom)
 
@@ -747,6 +804,14 @@ def compute_scores_att_2(img, call_idx, debug=False,
 
     contour_counter_upper = []
     contour_counter_lower = []
+
+    """
+    top
+    best top
+
+    best bottom
+    bottom
+    """
 
     for info in layerinfo:
         top, best_top, best_bottom, bottom = info
@@ -859,6 +924,7 @@ def compute_scores_att_3(img, call_idx, debug=False,
     in_white = True
     # None = white, int = class label
     buffer = 2
+    # iterate y-direction: detect lines of text
     for y in range(white_buffer, height_total - white_buffer):
         if np.all(img[y-buffer:y+buffer,:] == 255):
             in_white = True
@@ -884,6 +950,7 @@ def compute_scores_att_3(img, call_idx, debug=False,
         bottom = np.max(valid_indices)
         section = img[top:bottom]
         section = cv2.threshold(section, 150, 255, cv2.THRESH_BINARY_INV)[1]
+        # extract letters
         contours, _ = cv2.findContours(section, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         heights = []
         lows = []
@@ -894,6 +961,7 @@ def compute_scores_att_3(img, call_idx, debug=False,
             cv2.imwrite(snippet_output_dir / "res.png", img_with_bar)
             continue
         for contour in contours:
+            # collect (absolute) low and high coordinate of each letter
             ys = contour[:, 0, 1]
             xs = contour[:, 0, 0]
             heights.append(top + np.min(ys))
@@ -908,6 +976,7 @@ def compute_scores_att_3(img, call_idx, debug=False,
         med_h = int(np.median(heights))
         med_l = int(np.median(lows))
         y_thresh = 0 # min threshold to cross to be considered accender/decender
+        # per text line: differentiate between "tall" highs/lows and "normal" highs/lows
         min_xvalues_upper = [min_xvalues[i] for i in range(len(contours)) if heights[i] < med_h - y_thresh]
         min_xvalues_lower = [min_xvalues[i] for i in range(len(contours)) if lows[i] > med_l + y_thresh]
         max_xvalues_upper = [max_xvalues[i] for i in range(len(contours)) if heights[i] < med_h - y_thresh]
