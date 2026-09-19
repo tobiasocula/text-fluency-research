@@ -239,7 +239,7 @@ def wrap_text(text, font, max_width):
 
     return "\n".join(lines)
 
-def text_to_img(text, font_path, font_size, out_path=None, padding=20, max_width=1200, line_spacing=8):
+def text_to_img(text, font_path, font_size, out_path=None, padding=20, max_width=10000, line_spacing=8):
     font = ImageFont.truetype(str(font_path), font_size)
     wrapped = wrap_text(text, font, max_width)
 

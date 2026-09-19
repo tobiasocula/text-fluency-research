@@ -8,6 +8,7 @@ from pathlib import Path
 
 from letter_analysis import *
 from funcs import *
+from text_to_img_new import text_to_img, text_to_imgs
 
 num_texts = 1000
 
@@ -20,15 +21,14 @@ jsonl_files = [
 lan_labels = ["french", "german", "hun", "fin"]
 
 #FONT_PATH = str(Path.cwd() / "times-new-roman" / "times.ttf")
-#FONT_PATH = str(Path.cwd() / "Cormorant" / "Cormorant-VariableFont_wght.ttf")
+FONT_PATH = str(Path.cwd() / "Cormorant" / "Cormorant-VariableFont_wght.ttf")
 #FONT_PATH = str(Path.cwd() / "chunkfive" / "ChunkFive-Regular.otf")
-FONT_PATH = str(Path.cwd() / "arial" / "ARIAL.TTF")
+#FONT_PATH = str(Path.cwd() / "arial" / "ARIAL.TTF")
 
 
 
 def filter_text(text, filter_chars):
     return "".join(c for c in text if c not in filter_chars)
-
 
 def process_one(job):
     """
@@ -39,24 +39,38 @@ def process_one(job):
     label, idx, text = job
 
     uppers_a, lowers_a = analyze_text(text)
+    
 
-    img = text_to_img_new(
+    imgs = text_to_imgs(
         text,
         font_path=FONT_PATH,
         font_size=20,
+        max_width=5000,
+        lines_per_page=60,
     )
-    res = compute_scores_att_3(np.array(img), call_idx=idx, debug=False)
+    
+    res = [
+        compute_scores_att_3(np.array(img), call_idx=idx, debug=True)
+        for img in imgs
+    ]
     if res is None:
         return {"label": label, "failed": True}
 
-    uppers_g, lowers_g = res
+    uppers_g_all, lowers_g_all = [], []
+    for r in res:
+        uppers_g, lowers_g = r
+        for x in uppers_g:
+            uppers_g_all.append(x)
+        for y in lowers_g:
+            lowers_g_all.append(y)
+    
     return {
         "label": label,
         "failed": False,
         "uppers_a": uppers_a,
         "lowers_a": lowers_a,
-        "uppers_g": uppers_g,
-        "lowers_g": lowers_g,
+        "uppers_g": uppers_g_all,
+        "lowers_g": lowers_g_all,
     }
 
 
@@ -122,7 +136,7 @@ def main():
         }
 
     print('FINAL STATS:'); print(res_stats)
-    with open(Path.cwd() / "new_pipeline" / "outputs" / "results_tnr.json", "w") as f:
+    with open(Path.cwd() / "new_pipeline" / "outputs_new" / "results_co.json", "w") as f:
         json.dump(res_stats, f)
 
     print('num failures:', failures)
@@ -133,5 +147,5 @@ if __name__ == "__main__":
 
 
 """
-python3 new_pipeline/full_run_both.py
+python3 new_pipeline/full_run_both_new.py
 """
