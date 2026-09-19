@@ -8,7 +8,6 @@ from pathlib import Path
 
 from letter_analysis import *
 from funcs import *
-from text_to_img_new import text_to_img, text_to_imgs
 
 num_texts = 1000
 
@@ -32,38 +31,29 @@ def filter_text(text, filter_chars):
 
 def process_one(job):
     """
-    Runs in a worker process. Takes one (label, idx, text) job,
-    returns a small dict of results (or None on failure) instead of
-    mutating any shared state.
+    Runs in a worker process. Takes one (label, idx, text) job and
+    returns a small dict of results instead of mutating shared state.
     """
     label, idx, text = job
 
-    uppers_a, lowers_a = analyze_text(text)
-    
+    font = ImageFont.truetype(FONT_PATH, 20)
+    lines = wrap_lines(text, font, max_width=5000)
 
-    imgs = text_to_imgs(
-        text,
-        font_path=FONT_PATH,
-        font_size=20,
-        max_width=5000,
-        lines_per_page=60,
-    )
-    
-    res = [
-        compute_scores_att_3(np.array(img), call_idx=idx, debug=True)
-        for img in imgs
-    ]
+    # analytical: per wrapped line
+    uppers_a, lowers_a = [], []
+    for line in lines:
+        u, l = analyze_text(line)
+        uppers_a.extend(u)
+        lowers_a.extend(l)
+
+    # graphical: same lines rendered to an image
+    img = lines_to_img(lines, font)
+    res = compute_scores_att_3(np.array(img), call_idx=idx, debug=False)
     if res is None:
         return {"label": label, "failed": True}
 
-    uppers_g_all, lowers_g_all = [], []
-    for r in res:
-        uppers_g, lowers_g = r
-        for x in uppers_g:
-            uppers_g_all.append(x)
-        for y in lowers_g:
-            lowers_g_all.append(y)
-    
+    uppers_g_all, lowers_g_all = res
+
     return {
         "label": label,
         "failed": False,

@@ -188,6 +188,37 @@ def text_to_img(
 
 
 
+# def text_to_imgs(
+#     text, font_path, font_size,
+#     max_width=800, max_chars=None,
+#     lines_per_page=60,
+#     padding=20, line_spacing=8,
+#     mode="L", bg=255, fg=0,
+#     out_pattern=None,   # e.g. "page_{:03d}.png"
+# ):
+#     """Render text across as many images as needed."""
+#     font = ImageFont.truetype(str(font_path), font_size)
+#     lines = wrap_text(text, font, max_width=max_width, max_chars=max_chars)
+
+#     pages = []
+#     for i in range(0, len(lines), lines_per_page):
+#         chunk = "\n".join(lines[i:i + lines_per_page])
+#         out = out_pattern.format(len(pages)) if out_pattern else None
+#         pages.append(
+#             text_to_img(
+#                 chunk, font_path, font_size,
+#                 out_path=out,
+#                 padding=padding,
+#                 max_width=None,       # already wrapped
+#                 max_chars=None,
+#                 line_spacing=line_spacing,
+#                 mode=mode, bg=bg, fg=fg,
+#             )
+#         )
+#     return pages
+
+
+
 def text_to_imgs(
     text, font_path, font_size,
     max_width=800, max_chars=None,

@@ -215,54 +215,40 @@ def draw_bar(letter, pixel_weight, edge_weight, width):
 
 from PIL import Image, ImageDraw, ImageFont
 
-def wrap_text(text, font, max_width):
-    dummy = Image.new("L", (1, 1), 255)
-    draw = ImageDraw.Draw(dummy)
-
-    words = text.split()
-    lines = []
-    current = ""
-
-    for word in words:
-        test = word if current == "" else current + " " + word
-        bbox = draw.textbbox((0, 0), test, font=font)
-        width = bbox[2] - bbox[0]
-        if width <= max_width:
+def wrap_lines(text, font, max_width):
+    """Greedy word-wrap. Returns a list of lines, each <= max_width px wide
+    (unless a single word is wider than max_width on its own)."""
+    lines, current = [], ""
+    for word in text.split():
+        test = word if not current else current + " " + word
+        bbox = _draw.textbbox((0, 0), test, font=font)
+        if bbox[2] - bbox[0] <= max_width:
             current = test
         else:
             if current:
                 lines.append(current)
             current = word
-
     if current:
         lines.append(current)
+    return lines
 
-    return "\n".join(lines)
+_dummy = Image.new("L", (1, 1), 255)
+_draw = ImageDraw.Draw(_dummy)
 
-def text_to_img(text, font_path, font_size, out_path=None, padding=20, max_width=10000, line_spacing=8):
-    font = ImageFont.truetype(str(font_path), font_size)
-    wrapped = wrap_text(text, font, max_width)
 
-    dummy = Image.new("L", (1, 1), 255)
-    draw = ImageDraw.Draw(dummy)
-    bbox = draw.multiline_textbbox((0, 0), wrapped, font=font, spacing=line_spacing)
+def lines_to_img(lines, font, padding=20, line_spacing=8, out_path=None):
+    """Render already-wrapped lines to a grayscale image."""
+    wrapped = "\n".join(lines)
+    bbox = _draw.multiline_textbbox((0, 0), wrapped, font=font, spacing=line_spacing)
+    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-
-    img = Image.new("L", (text_w + 2 * padding, text_h + 2 * padding), 255)
-    draw = ImageDraw.Draw(img)
-    draw.multiline_text(
+    img = Image.new("L", (w + 2 * padding, h + 2 * padding), 255)
+    ImageDraw.Draw(img).multiline_text(
         (padding - bbox[0], padding - bbox[1]),
-        wrapped,
-        font=font,
-        fill=0,
-        spacing=line_spacing
+        wrapped, font=font, fill=0, spacing=line_spacing,
     )
-
     if out_path is not None:
         img.save(out_path)
-
     return img
 
 from PIL import Image, ImageDraw, ImageFont
