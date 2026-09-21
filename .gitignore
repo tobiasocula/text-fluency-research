@@ -9,3 +9,7 @@ hun_texts_subset.jsonl
 venv
 amatic_debug.png
 obsidian_vault_tree.py
+wiki_nl.jsonl
+wiki_no.jsonl
+temp_test.py
+test_read_language_text.py

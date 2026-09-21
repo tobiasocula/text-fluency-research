@@ -31,6 +31,31 @@ def extract_letters(img):
 
     return letters, img
 
+def remove_diacritics(text):
+    mapping = {
+        "ä": "a",
+        "à": "a",
+        "á": "a",
+        "å": "a",
+        "è": "e",
+        "é": "e",
+        "ë": "e",
+        "ï": "i",
+        "í": "i",
+        "ű": "u",
+        "ü": "u",
+        "ú": "u",
+        "ó": "o",
+        "ö": "o",
+        "ñ": "n"
+    }
+    def convert(char):
+        x = mapping.get(char, "")
+        if x:
+            return x
+        return char
+
+    return "".join([convert(x) for x in text])
 
 
 def match_letter(letter, training_data_dir, bars_dir):
