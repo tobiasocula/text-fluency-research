@@ -636,7 +636,8 @@ def compute_scores(img,
 
 def compute_scores_att_2(img, call_idx, debug=False,
                          output_dir=Path.cwd() / "new_pipeline" / "outputs",
-                         snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs" # for debugging results
+                         snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs", # for debugging results
+                            return_img = False
                          ):
     
 
@@ -783,7 +784,8 @@ def compute_scores_att_2(img, call_idx, debug=False,
             )
 
         img_with_bar = cv2.addWeighted(img_with_bar, 0.5, overlay, 0.5, 0)
-        
+
+    
 
     upper_dists = []
     lower_dists = []
@@ -869,9 +871,13 @@ def compute_scores_att_2(img, call_idx, debug=False,
         print('DEBUG DONE')
         print()
 
-        cv2.imshow("overlay", img_with_bar)
-        cv2.waitKey(0)
-        cv2.imwrite(snippet_output_dir / "res.png", img_with_bar)
+        if not return_img:
+
+            cv2.imshow("overlay", img_with_bar)
+            cv2.waitKey(0)
+            cv2.imwrite(snippet_output_dir / "res.png", img_with_bar)
+        else:
+            return img_with_bar
 
     return upper_dists, lower_dists
         
@@ -879,7 +885,8 @@ import textwrap
 
 def compute_scores_att_3(img, call_idx, debug=False,
                          output_dir=Path.cwd() / "new_pipeline" / "outputs",
-                         snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs" # for debugging results
+                         snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs", # for debugging results
+                         return_img=False
                          ):
     
     def differences(min_xs, max_xs):
@@ -961,7 +968,7 @@ def compute_scores_att_3(img, call_idx, debug=False,
         #print('semi debug: heights:', heights)
         med_h = int(np.median(heights))
         med_l = int(np.median(lows))
-        y_thresh = 0 # min threshold to cross to be considered accender/decender
+        y_thresh = 2 # min threshold to cross to be considered accender/decender
         # per text line: differentiate between "tall" highs/lows and "normal" highs/lows
         min_xvalues_upper = [min_xvalues[i] for i in range(len(contours)) if heights[i] < med_h - y_thresh]
         min_xvalues_lower = [min_xvalues[i] for i in range(len(contours)) if lows[i] > med_l + y_thresh]
@@ -995,9 +1002,12 @@ def compute_scores_att_3(img, call_idx, debug=False,
             img_with_bar = cv2.line(img_with_bar, (0, med_l-1), (width_total, med_l+1), (0,255,0))
     
     if debug:
-        cv2.imshow("img_with_lines", img_with_bar)
-        cv2.waitKey(0)
-        cv2.imwrite(snippet_output_dir / "res.png", img_with_bar)
+        if not return_img:
+            cv2.imshow("img_with_lines", img_with_bar)
+            cv2.waitKey(0)
+            cv2.imwrite(snippet_output_dir / "res.png", img_with_bar)
+        else:
+            return img_with_bar
 
     return all_upper_diffs, all_lower_diffs
         
