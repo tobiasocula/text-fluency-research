@@ -9,6 +9,8 @@ from funcs import get_valid_texts, extract_letters, text_to_image, match_letter,
 python3 new_vertical/run.py
 """
 
+FONT_PATH = str(Path.cwd() / "arial" / "ARIAL.TTF")
+
 letters_dir = Path.cwd() / "new_models" / "arial" / "letters"
 bars_dir = Path.cwd() / "new_models" / "arial" / "bars"
 
@@ -52,6 +54,8 @@ per_lan_dists = []
 count = 0
 failures = 0
 
+CANDIDATE_CHARS = list("abcdefghijklmnopqrstuvwxyz") + list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 #for i,(label,texts) in enumerate(zip(lan_labels, all_texts)):
 for i,(label,texts,ctexts) in enumerate(zip(lan_labels, all_texts, converted_texts)):
     print('in language', label)
@@ -63,10 +67,10 @@ for i,(label,texts,ctexts) in enumerate(zip(lan_labels, all_texts, converted_tex
         print('in text', j)
 
         image = text_to_image(text,
-                            font_path=str(Path.cwd() / "arial" / "ARIAL.TTF")
+                            font_path=FONT_PATH
         )
         cimage = text_to_image(ctext,
-                               font_path=str(Path.cwd() / "arial" / "ARIAL.TTF"))
+                               font_path=FONT_PATH)
         letters, _ = extract_letters(image)
         cletters, _ = extract_letters(cimage)
         result_img = image.copy()

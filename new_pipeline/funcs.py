@@ -215,14 +215,14 @@ def draw_bar(letter, pixel_weight, edge_weight, width):
 
 from PIL import Image, ImageDraw, ImageFont
 
-def wrap_lines(text, font, max_width):
-    """Greedy word-wrap. Returns a list of lines, each <= max_width px wide
-    (unless a single word is wider than max_width on its own)."""
+def wrap_lines(text, max_chars):
+    """Greedy word-wrap by character count. Returns a list of lines, each
+    <= max_chars characters (unless a single word is longer than max_chars
+    on its own, in which case it becomes its own line)."""
     lines, current = [], ""
     for word in text.split():
         test = word if not current else current + " " + word
-        bbox = _draw.textbbox((0, 0), test, font=font)
-        if bbox[2] - bbox[0] <= max_width:
+        if len(test) <= max_chars:
             current = test
         else:
             if current:

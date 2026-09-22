@@ -34,7 +34,7 @@ def process_one(job):
     font_path, label, idx, text = job   # font path now travels with the job
 
     font = ImageFont.truetype(font_path, 20)
-    lines = wrap_lines(text, font, max_width=5000)
+    lines = wrap_lines(text, max_chars=500)
 
     uppers_a, lowers_a = [], []
     for line in lines:
