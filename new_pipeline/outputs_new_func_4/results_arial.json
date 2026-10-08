@@ -1,0 +1,110 @@
+{
+  "french": {
+    "analytical": {
+      "std_upper": 3.3728124002372337,
+      "std_lower": 13.577507071157957,
+      "med_upper": 3.185551968464077,
+      "med_lower": 13.489588030802075
+    },
+    "graphical": {
+      "std_upper": 28.634494777253725,
+      "std_lower": 170.53542356506154,
+      "med_upper": 29.07154748138341,
+      "med_lower": 177.5927236988589
+
+      
+    }
+  },
+  "german": {
+    "analytical": {
+      "std_upper": 2.811639543208717,
+      "std_lower": 9.079088794110017,
+      "med_upper": 2.607312947754674,
+      "med_lower": 10.073840299853751
+    },
+    "graphical": {
+      "std_upper": 21.57632806456783,
+      "std_lower": 238.5207625566009,
+      "med_upper": 22.609991191863852,
+      "med_lower": 227.99794282872352
+
+      
+    }
+  },
+  "hun": {
+    "analytical": {
+      "std_upper": 2.1960326802593713,
+      "std_lower": 12.602975950889856,
+      "med_upper": 1.7490175902733944,
+      "med_lower": 11.490117900246144
+    },
+    "graphical": {
+      "std_upper": 20.622790950712897,
+      "std_lower": 136.19823906208654,
+      "med_upper": 20.471725533498272,
+      "med_lower": 124.84982664222925
+
+      
+    }
+  },
+  "fin": {
+    "analytical": {
+      "std_upper": 2.1273201816196585,
+      "std_lower": 13.417040261087005,
+      "med_upper": 1.6761938226804183,
+      "med_lower": 12.997245607436046
+    },
+    "graphical": {
+      "std_upper": 20.11682696424111,
+      "std_lower": 168.01891008952884,
+      "med_upper": 18.696806970746835,
+      "med_lower": 158.38776332904823
+
+      
+    }
+  }
+}
+
+"""
+EXTRA EXP
+
+differences in analyticals: probably due to new function fix_caps_sentences()
+some numbers lower in old version: because of overlapping characters.
+in some fonts: almost exact same (because of non-overlapping characters
+
+conclusion: function_4 best overall
+variation over fonts: most of the time pretty close, sometimes diverges significantly, eg.:
+
+  (german):
+  "std_upper": 23.147563870315064,
+  "std_lower": 256.18522027096753,
+  "med_upper": 22.834190042914482,
+  "med_lower": 244.1572152204727
+
+  (chunkfive) vs
+
+  "std_upper": 21.449800125429867,
+  "std_lower": 189.57323477298976,
+  "med_upper": 21.374288403627535,
+  "med_lower": 118.24484383395561
+
+  (cormorant)
+
+  other times (eg. arial vs times), we get (finnish)
+
+  "std_upper": 20.11682696424111,
+  "std_lower": 168.01891008952884,
+  "med_upper": 18.696806970746835,
+  "med_lower": 158.38776332904823
+
+  "std_upper": 17.534517043383048,
+  "std_lower": 152.61201145195602,
+  "med_upper": 16.50418506008904,
+  "med_lower": 142.80910925257277
+
+  h: since german doesn't have many characters that extend lower, difference gets amplified because of the many characters
+  in between "lower" characters
+
+  
+
+"""

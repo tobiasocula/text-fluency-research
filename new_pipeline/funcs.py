@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import re
 from pathlib import Path
 import sys
 from sklearn.cluster import DBSCAN
@@ -22,7 +23,7 @@ def get_valid_texts(jsonl_files, num_texts, max_chars=None):
                     if max_chars is not None:
                         if len(text) > max_chars:
                             text = text[:max_chars]
-                    texts.append(text)
+                    texts.append(fix_caps_sentences(text))
                     if len(texts) >= num_texts:
                         break
                     
@@ -33,6 +34,26 @@ def get_valid_texts(jsonl_files, num_texts, max_chars=None):
         lan_texts.append(texts)
     return lan_texts
 
+def fix_caps_sentences(text: str, min_letters: int = 2, keep=frozenset()) -> str:
+
+    WORD = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)*")  # letter-only words, accents included
+    SENTENCE_START = re.compile(r"(?:^|[.!?…]\s+|\n\s*)[\W\d_]*$")
+
+    """Lowercase every ALL-CAPS word, capitalizing it only at the start of a sentence/line.
+
+    min_letters: words shorter than this (e.g. "A", "I") are left alone.
+    keep: words to leave untouched, e.g. acronyms like {"NASA", "CNRS"}.
+    """
+    def repl(m):
+        w = m.group()
+        if not w.isupper() or len(w) < min_letters or w in keep:
+            return w
+        w = w.lower()
+        if SENTENCE_START.search(text[:m.start()]):
+            w = w.capitalize()
+        return w
+
+    return WORD.sub(repl, text)
 
 import zstandard as zstd
 
@@ -635,7 +656,7 @@ def compute_scores(img,
 
 
 def compute_scores_att_2(img, call_idx, debug=False,
-                         output_dir=Path.cwd() / "new_pipeline" / "outputs",
+                         output_dir=Path.cwd() / "new_pipeline" / "outputs_new_func_2",
                          snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs", # for debugging results
                             return_img = False
                          ):
@@ -741,7 +762,7 @@ def compute_scores_att_2(img, call_idx, debug=False,
             scores_bottom[i] = intensity
 
         #padding_indices = 1 # to avoid having completely no margin
-        padding_indices = 0
+        padding_indices = 1 # or 0
 
         best_top = np.argmax(scores_top) + top
         best_bottom = bottom - np.argmax(scores_bottom)
@@ -964,11 +985,10 @@ def compute_scores_att_3(img, call_idx, debug=False,
             if debug:
                 print('DEBUG: appending min value:', min_xvalues[-1], 'and max value:', max_xvalues[-1])
 
-        
         #print('semi debug: heights:', heights)
         med_h = int(np.median(heights))
         med_l = int(np.median(lows))
-        y_thresh = 2 # min threshold to cross to be considered accender/decender
+        y_thresh = 0 # min threshold to cross to be considered accender/decender
         # per text line: differentiate between "tall" highs/lows and "normal" highs/lows
         min_xvalues_upper = [min_xvalues[i] for i in range(len(contours)) if heights[i] < med_h - y_thresh]
         min_xvalues_lower = [min_xvalues[i] for i in range(len(contours)) if lows[i] > med_l + y_thresh]
@@ -1010,6 +1030,115 @@ def compute_scores_att_3(img, call_idx, debug=False,
             return img_with_bar
 
     return all_upper_diffs, all_lower_diffs
+
+
+def compute_scores_att_4(img, call_idx, debug=False,
+                         output_dir=Path.cwd() / "new_pipeline" / "outputs_new_func_4",
+                         snippet_output_dir=Path.cwd() / "new_pipeline" / "snippet_outputs",
+                         return_img=False,
+                         y_thresh=1  # px beyond the bound line before ink counts as sticking out
+                         ):
+
+    def differences(min_xs, max_xs):
+        if len(min_xs) <= 1:
+            return []
+        paired = sorted(zip(min_xs, max_xs), key=lambda p: p[0])
+        gaps = []
+        for (_, right), (left, _) in zip(paired[:-1], paired[1:]):
+            gaps.append(left - right)
+        return gaps
+
+    img = img if len(img.shape) == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_with_bar = np.array(cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)) if debug else None
+    height_total, width_total = img.shape
+
+    white_buffer = 2
+    labels = np.full(height_total, np.nan)
+    class_counter = 0
+    in_white = True
+    buffer = 1
+    for y in range(white_buffer, height_total - white_buffer):
+        if np.all(img[y-buffer:y+buffer, :] == 255):
+            in_white = True
+        elif np.any(img[y, :] == 0):
+            if in_white:
+                if debug:
+                    print('NEW CLASS')
+                class_counter += 1
+            labels[y] = class_counter
+            in_white = False
+
+    if debug:
+        print('DEBUG, number of layers:', class_counter)
+
+    all_upper_diffs = []
+    all_lower_diffs = []
+
+    for cls in range(1, class_counter + 1):
+        valid_indices = np.where(labels == cls)[0]
+        top = int(np.min(valid_indices))
+        bottom = int(np.max(valid_indices))
+
+        section = img[top:bottom + 1]
+        section = cv2.threshold(section, 150, 255, cv2.THRESH_BINARY_INV)[1]
+        ink = section > 0                      # bool, (line_h, width)
+        line_h = ink.shape[0]
+
+        cols = np.where(ink.any(axis=0))[0]
+        if len(cols) == 0:
+            continue
+
+        min_y = np.argmax(ink, axis=0)[cols]                        # topmost ink row per column
+        max_y = (line_h - 1 - np.argmax(ink[::-1], axis=0))[cols]   # bottommost ink row per column
+
+        # bound lines (relative to this line's crop):
+        # x-height = most common top row, baseline = most common bottom row
+        xheight_row = int(np.bincount(min_y).argmax())
+        baseline_row = int(np.bincount(max_y).argmax())
+
+        # ink strictly beyond the bound lines (+ tolerance) sticks out
+        upper_limit = max(xheight_row - y_thresh, 0)           # rows < upper_limit stick out
+        lower_limit = min(baseline_row + y_thresh, line_h - 1)  # rows > lower_limit stick out
+
+        # ink that sticks out (always computed, not just in debug)
+        stick_up = np.zeros_like(ink)
+        stick_up[:upper_limit] = ink[:upper_limit]
+        stick_down = np.zeros_like(ink)
+        stick_down[lower_limit + 1:] = ink[lower_limit + 1:]
+
+        def runs(mask2d):
+            """Column runs that contain sticking-out ink -> (starts, ends_exclusive)."""
+            col = np.concatenate(([0], mask2d.any(axis=0).astype(np.int8), [0]))
+            d = np.diff(col)
+            starts = np.where(d == 1)[0]
+            ends = np.where(d == -1)[0]      # exclusive end
+            return starts.tolist(), ends.tolist()
+
+        up_starts, up_ends = runs(stick_up)
+        low_starts, low_ends = runs(stick_down)
+
+        all_upper_diffs.extend(differences(up_starts, up_ends))
+        all_lower_diffs.extend(differences(low_starts, low_ends))
+
+        if debug:
+            print(f'DEBUG: line {cls}: xheight_row={xheight_row}, baseline_row={baseline_row}, '
+                  f'upper runs={len(up_starts)}, lower runs={len(low_starts)}')
+            region = img_with_bar[top:bottom + 1]
+            region[stick_up | stick_down] = (0, 0, 255)
+            cv2.line(img_with_bar, (0, top + upper_limit), (width_total - 1, top + upper_limit), (0, 200, 0), 1)
+            cv2.line(img_with_bar, (0, top + lower_limit), (width_total - 1, top + lower_limit), (0, 200, 0), 1)
+
+    if debug:
+        if not return_img:
+            cv2.imshow("img_with_profiles", img_with_bar)
+            cv2.waitKey(0)
+            cv2.imwrite(str(snippet_output_dir / "res.png"), img_with_bar)
+        else:
+            return img_with_bar
+
+    return all_upper_diffs, all_lower_diffs
+
+        
         
     
 def wrap_text_to_pixels(text: str, font: ImageFont, max_width_px: int) -> list[str]:

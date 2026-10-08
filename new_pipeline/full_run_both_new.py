@@ -1,6 +1,14 @@
 """
 with new text-to-img generation
 usage: python3 new_pipeline/full_run_both_new.py --font PATH_TO_FONT [--name LABEL]
+
+python3 new_pipeline/full_run_both_new.py --font
+
+python3 new_pipeline/full_run_both_new.py --font arial/ARIAL.TTF
+python3 new_pipeline/full_run_both_new.py --font chunkfive/ChunkFive-Regular.otf
+python3 new_pipeline/full_run_both_new.py --font times-new-roman/times.ttf
+python3 new_pipeline/full_run_both_new.py --font Cormorant/Cormorant-VariableFont_wght.ttf
+
 """
 import argparse
 import json
@@ -11,7 +19,8 @@ from pathlib import Path
 from letter_analysis import *
 from funcs import *
 
-num_texts = 1000
+#num_texts = 1000
+num_texts = 1
 
 jsonl_files = [
     Path.cwd() / "french_texts_random_subset.jsonl",
@@ -31,7 +40,7 @@ def process_one(job):
     Runs in a worker process. Takes one (font_path, label, idx, text) job and
     returns a small dict of results instead of mutating shared state.
     """
-    font_path, label, idx, text = job   # font path now travels with the job
+    font_path, label, idx, text = job
 
     font = ImageFont.truetype(font_path, 20)
     lines = wrap_lines(text, max_chars=500)
@@ -43,7 +52,8 @@ def process_one(job):
         lowers_a.extend(l)
 
     img = lines_to_img(lines, font)
-    res = compute_scores_att_3(np.array(img), call_idx=idx, debug=False)
+    print('debugging')
+    res = compute_scores_att_4(np.array(img), call_idx=idx, debug=True)
     if res is None:
         return {"label": label, "failed": True}
 

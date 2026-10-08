@@ -1,0 +1,58 @@
+{
+  "french": {
+    "analytical": {
+      "std_upper": 3.1591976763171967,
+      "std_lower": 17.397203988330144,
+      "med_upper": 3.002994011976048,
+      "med_lower": 14.204545454545455
+    },
+    "graphical": {
+      "std_upper": 27.174556816456526,
+      "std_lower": 189.76515091027647,
+      "med_upper": 28.095238095238095,
+      "med_lower": 184.0
+    }
+  },
+  "german": {
+    "analytical": {
+      "std_upper": 3.753340521194512,
+      "std_lower": 9.302404109810658,
+      "med_upper": 3.3712643678160923,
+      "med_lower": 9.75
+    },
+    "graphical": {
+      "std_upper": 27.439050712442654,
+      "std_lower": 306.14108979995694,
+      "med_upper": 25.136,
+      "med_lower": 276.3076923076923
+    }
+  },
+  "hun": {
+    "analytical": {
+      "std_upper": 2.0518843999147975,
+      "std_lower": 14.225036403586563,
+      "med_upper": 1.6477035490605427,
+      "med_lower": 13.202175543885971
+    },
+    "graphical": {
+      "std_upper": 20.704073600479934,
+      "std_lower": 178.93120744856108,
+      "med_upper": 20.07626130067075,
+      "med_lower": 151.001
+    }
+  },
+  "fin": {
+    "analytical": {
+      "std_upper": 2.1809331038182376,
+      "std_lower": 12.005311738563478,
+      "med_upper": 1.7293871778755496,
+      "med_lower": 11.675452156438398
+    },
+    "graphical": {
+      "std_upper": 21.41798640976349,
+      "std_lower": 189.60714541690857,
+      "med_upper": 19.055653277199458,
+      "med_lower": 174.84907916766323
+    }
+  }
+}
