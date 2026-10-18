@@ -25,6 +25,6 @@ Given a text, we want to extract the "irregularities" that break up the horizont
 Given a text, we want to measure the regularities of the "vertical rhythm" of the text. For this, we assign each letter with a custom bar profile, where one would imagine the most "vertical mass" to be present. Given the text, one then uses something like optical character recognition to draw the bars at correct positions and derives statistics from this.
 
 <p align="center">
-  <img src="new_vertical/letters_w_bars/A_cap.png" width="45%" />
-  <img src="new_vertical/letters_w_bars/Z.png" width="45%" />
+  <img src="new_vertical/letters_w_bars/A_cap.png" width="25%" />
+  <img src="new_vertical/letters_w_bars/Z.png" width="25%" />
 </p>
